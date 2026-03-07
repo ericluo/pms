@@ -17,6 +17,7 @@ export interface Portfolio {
   description: string
   benchmark: string
   risk_level: string
+  is_default: boolean
   created_at: string
   updated_at: string
 }
@@ -29,6 +30,7 @@ export interface Asset {
   type: string
   market: string
   industry: string
+  interest_rate?: number
   created_at: string
   updated_at: string
 }

@@ -25,14 +25,14 @@ holding_model = api.model('Holding', {
     'updated_at': fields.DateTime(readonly=True)
 })
 
-@api.route('')
+@api.route('/', strict_slashes=False)
 class HoldingList(Resource):
     @api.doc(security='Bearer')
     @jwt_required()
     @api.response(200, '获取成功', [holding_model])
     @api.response(401, '未授权')
     @api.response(404, '投资组合不存在')
-    def get(self):
+    def get(self, portfolio_id=None):
         """获取投资组合持仓列表"""
         db: Session = next(get_db())
         holding_service = HoldingService(db)
@@ -40,13 +40,12 @@ class HoldingList(Resource):
         
         user_id = get_jwt_identity()
         
-        # 从URL路径中获取portfolio_id
-        import re
-        path = request.path
-        match = re.search(r'/portfolios/(\d+)/holdings', path)
-        if not match:
-            api.abort(400, 'Invalid URL path')
-        portfolio_id = int(match.group(1))
+        # 从路径参数或查询参数获取 portfolio_id
+        if portfolio_id is None:
+            portfolio_id = request.args.get('portfolio_id', type=int)
+        
+        if not portfolio_id:
+            api.abort(400, 'Missing portfolio_id parameter')
         
         # 验证投资组合是否属于该用户
         portfolio = portfolio_service.get_portfolio(portfolio_id, int(user_id))
@@ -64,7 +63,7 @@ class HoldingList(Resource):
     @api.response(201, '创建成功', holding_model)
     @api.response(401, '未授权')
     @api.response(404, '投资组合不存在')
-    def post(self):
+    def post(self, portfolio_id=None):
         """添加持仓"""
         db: Session = next(get_db())
         holding_service = HoldingService(db)
@@ -72,13 +71,12 @@ class HoldingList(Resource):
         
         user_id = get_jwt_identity()
         
-        # 从URL路径中获取portfolio_id
-        import re
-        path = request.path
-        match = re.search(r'/portfolios/(\d+)/holdings', path)
-        if not match:
-            api.abort(400, 'Invalid URL path')
-        portfolio_id = int(match.group(1))
+        # 从路径参数或查询参数获取 portfolio_id
+        if portfolio_id is None:
+            portfolio_id = request.args.get('portfolio_id', type=int)
+        
+        if not portfolio_id:
+            api.abort(400, 'Missing portfolio_id parameter')
         
         # 验证投资组合是否属于该用户
         portfolio = portfolio_service.get_portfolio(portfolio_id, int(user_id))
@@ -86,7 +84,7 @@ class HoldingList(Resource):
             api.abort(404, '投资组合不存在')
         
         data = request.json
-        holding = holding_service.create_holding(HoldingCreate(**data), portfolio_id)
+        holding = holding_service.create_holding(data, portfolio_id)
         
         # 计算持仓指标
         holdings = holding_service.get_holdings(portfolio_id)
@@ -104,21 +102,13 @@ class HoldingDetail(Resource):
     @api.response(200, '获取成功', holding_model)
     @api.response(401, '未授权')
     @api.response(404, '持仓不存在')
-    def get(self, holding_id):
+    def get(self, portfolio_id, holding_id):
         """获取持仓详情"""
         db: Session = next(get_db())
         holding_service = HoldingService(db)
         portfolio_service = PortfolioService(db)
         
         user_id = get_jwt_identity()
-        
-        # 从URL路径中获取portfolio_id
-        import re
-        path = request.path
-        match = re.search(r'/portfolios/(\d+)/holdings', path)
-        if not match:
-            api.abort(400, 'Invalid URL path')
-        portfolio_id = int(match.group(1))
         
         # 验证投资组合是否属于该用户
         portfolio = portfolio_service.get_portfolio(portfolio_id, int(user_id))
@@ -153,21 +143,13 @@ class HoldingDetail(Resource):
     @api.response(200, '更新成功', holding_model)
     @api.response(401, '未授权')
     @api.response(404, '持仓不存在')
-    def put(self, holding_id):
+    def put(self, portfolio_id, holding_id):
         """更新持仓"""
         db: Session = next(get_db())
         holding_service = HoldingService(db)
         portfolio_service = PortfolioService(db)
         
         user_id = get_jwt_identity()
-        
-        # 从URL路径中获取portfolio_id
-        import re
-        path = request.path
-        match = re.search(r'/portfolios/(\d+)/holdings', path)
-        if not match:
-            api.abort(400, 'Invalid URL path')
-        portfolio_id = int(match.group(1))
         
         # 验证投资组合是否属于该用户
         portfolio = portfolio_service.get_portfolio(portfolio_id, int(user_id))
@@ -202,21 +184,13 @@ class HoldingDetail(Resource):
     @api.response(200, '删除成功')
     @api.response(401, '未授权')
     @api.response(404, '持仓不存在')
-    def delete(self, holding_id):
+    def delete(self, portfolio_id, holding_id):
         """删除持仓"""
         db: Session = next(get_db())
         holding_service = HoldingService(db)
         portfolio_service = PortfolioService(db)
         
         user_id = get_jwt_identity()
-        
-        # 从URL路径中获取portfolio_id
-        import re
-        path = request.path
-        match = re.search(r'/portfolios/(\d+)/holdings', path)
-        if not match:
-            api.abort(400, 'Invalid URL path')
-        portfolio_id = int(match.group(1))
         
         # 验证投资组合是否属于该用户
         portfolio = portfolio_service.get_portfolio(portfolio_id, int(user_id))

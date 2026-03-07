@@ -6,6 +6,7 @@ from app.models.transaction import Transaction
 from app.models.cash_flow import CashFlow
 from app.models.market_data import MarketData
 from app.models.report import Report
+from app.models.portfolio_finance import PortfolioFinance, PortfolioFinanceHistory, HoldingChange
 
 __all__ = [
     "User",

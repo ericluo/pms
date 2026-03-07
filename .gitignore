@@ -1,71 +1,98 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+test_*.db
+integration_test.db
+pms.db
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
 # Logs
-logs
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Test files
+test_*.py
+*_test.py
+test_*.js
+test_*.ts
+*_test.js
+*_test.ts
+test_*.json
+test_*.txt
+test_*.db
+test_results/
+test-results/
+playwright-report/
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# Documentation generated during development
+*_REPORT.md
+*_GUIDE.md
+*_SUMMARY.md
+*_SOLUTION.md
+*_COMPLETE.md
+*_FIX.md
+*_STATUS.md
+*_PLAN.md
+*_RESULTS.txt
+*_OUTPUT.txt
+verification_*.md
+verification_*.txt
+debug_*.py
+debug_*.md
 
-# Environment variables
-.env
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# Environment
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*.local
 
-# Testing
-coverage
-*.lcov
+# Coverage
+coverage/
+.nyc_output/
 
-# Production
-build
-
-# Misc
-.DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# TypeScript
-*.tsbuildinfo
-
-# Optional npm cache directory
-.npm
-
-# Optional eslint cache
-.eslintcache
-
-# Optional stylelint cache
-.stylelintcache
-
-# Yarn
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/sdks
-!.yarn/versions
-.pnp.*
+# Build
+dist/
+build/

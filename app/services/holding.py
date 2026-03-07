@@ -17,13 +17,13 @@ class HoldingService:
             Holding.portfolio_id == portfolio_id
         ).first()
     
-    def create_holding(self, holding_create: HoldingCreate, portfolio_id: int) -> Holding:
+    def create_holding(self, holding_data: dict, portfolio_id: int) -> Holding:
         db_holding = Holding(
             portfolio_id=portfolio_id,
-            asset_id=holding_create.asset_id,
-            quantity=holding_create.quantity,
-            cost_price=holding_create.cost_price,
-            current_price=holding_create.current_price
+            asset_id=holding_data.get('asset_id'),
+            quantity=holding_data.get('quantity', 0),
+            cost_price=holding_data.get('cost_price', 0),
+            current_price=holding_data.get('current_price', 0)
         )
         self.db.add(db_holding)
         self.db.commit()
@@ -69,6 +69,7 @@ class HoldingService:
             weight = (metrics["value"] / total_value) * 100 if total_value > 0 else 0
             result.append({
                 "id": holding.id,
+                "portfolio_id": holding.portfolio_id,
                 "asset_id": holding.asset_id,
                 "asset_code": asset.code if asset else "",
                 "asset_name": asset.name if asset else "",

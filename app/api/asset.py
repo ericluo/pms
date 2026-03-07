@@ -8,14 +8,14 @@ from app.schemas.asset import AssetCreate, AssetUpdate, AssetResponse
 
 api = Namespace('assets', description='资产相关操作')
 
-# 模型定义
 asset_model = api.model('Asset', {
     'id': fields.Integer(readonly=True),
     'code': fields.String(required=True),
     'name': fields.String(required=True),
     'type': fields.String(required=True),
-    'market': fields.String(required=True),
+    'market': fields.String,
     'industry': fields.String,
+    'interest_rate': fields.Float,
     'created_at': fields.DateTime(readonly=True),
     'updated_at': fields.DateTime(readonly=True)
 })
@@ -27,11 +27,14 @@ class AssetList(Resource):
     @api.response(200, '获取成功', [asset_model])
     @api.response(401, '未授权')
     def get(self):
-        """获取资产列表"""
+        """获取资产列表（可按类型筛选）"""
         db: Session = next(get_db())
         asset_service = AssetService(db)
         
-        assets = asset_service.get_assets()
+        asset_type = request.args.get('type')
+        market = request.args.get('market')
+        
+        assets = asset_service.get_assets(asset_type=asset_type, market=market)
         
         return [{
             'id': a.id,
@@ -40,8 +43,9 @@ class AssetList(Resource):
             'type': a.type,
             'market': a.market,
             'industry': a.industry,
-            'created_at': a.created_at,
-            'updated_at': a.updated_at
+            'interest_rate': float(a.interest_rate) if a.interest_rate else None,
+            'created_at': a.created_at.isoformat() if a.created_at else None,
+            'updated_at': a.updated_at.isoformat() if a.updated_at else None
         } for a in assets]
     
     @api.doc(security='Bearer')
@@ -55,7 +59,7 @@ class AssetList(Resource):
         asset_service = AssetService(db)
         
         data = request.json
-        asset = asset_service.create_asset(AssetCreate(**data))
+        asset = asset_service.create_asset(data)
         
         return {
             'id': asset.id,
@@ -64,9 +68,21 @@ class AssetList(Resource):
             'type': asset.type,
             'market': asset.market,
             'industry': asset.industry,
-            'created_at': asset.created_at,
-            'updated_at': asset.updated_at
+            'interest_rate': float(asset.interest_rate) if asset.interest_rate else None,
+            'created_at': asset.created_at.isoformat() if asset.created_at else None,
+            'updated_at': asset.updated_at.isoformat() if asset.updated_at else None
         }, 201
+
+@api.route('/types')
+class AssetTypes(Resource):
+    @api.doc(security='Bearer')
+    @jwt_required()
+    @api.response(200, '获取成功')
+    def get(self):
+        """获取资产类型列表"""
+        db: Session = next(get_db())
+        asset_service = AssetService(db)
+        return asset_service.get_asset_types()
 
 @api.route('/<int:asset_id>')
 class AssetDetail(Resource):
@@ -92,6 +108,7 @@ class AssetDetail(Resource):
             'type': asset.type,
             'market': asset.market,
             'industry': asset.industry,
+            'interest_rate': float(asset.interest_rate) if asset.interest_rate else None,
             'created_at': asset.created_at,
             'updated_at': asset.updated_at
         }
@@ -108,7 +125,7 @@ class AssetDetail(Resource):
         asset_service = AssetService(db)
         
         data = request.json
-        asset = asset_service.update_asset(asset_id, AssetUpdate(**data))
+        asset = asset_service.update_asset(asset_id, data)
         
         if not asset:
             api.abort(404, '资产不存在')
@@ -120,6 +137,7 @@ class AssetDetail(Resource):
             'type': asset.type,
             'market': asset.market,
             'industry': asset.industry,
+            'interest_rate': float(asset.interest_rate) if asset.interest_rate else None,
             'created_at': asset.created_at,
             'updated_at': asset.updated_at
         }

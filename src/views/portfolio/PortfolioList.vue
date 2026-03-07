@@ -26,7 +26,14 @@
       </template>
       
       <el-table :data="filteredPortfolios" style="width: 100%">
-        <el-table-column prop="name" label="组合名称" />
+        <el-table-column label="组合名称">
+          <template #default="scope">
+            <div class="portfolio-name">
+              <span>{{ scope.row.name }}</span>
+              <el-tag v-if="scope.row.is_default" size="small" type="primary" effect="dark">默认</el-tag>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column prop="benchmark" label="业绩基准" />
         <el-table-column prop="risk_level" label="风险等级" />
         <el-table-column prop="created_at" label="创建时间" />
@@ -109,5 +116,11 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.portfolio-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 </style>

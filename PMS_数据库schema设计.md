@@ -33,11 +33,23 @@
 | `description` | `TEXT` | | 组合描述 |
 | `benchmark` | `VARCHAR(50)` | `NOT NULL` | 业绩基准 |
 | `risk_level` | `VARCHAR(20)` | `NOT NULL` | 风险等级 |
+| `is_default` | `BOOLEAN` | `NOT NULL DEFAULT FALSE` | 是否为默认投资组合 |
 | `created_at` | `TIMESTAMP` | `NOT NULL DEFAULT CURRENT_TIMESTAMP` | 创建时间 |
 | `updated_at` | `TIMESTAMP` | `NOT NULL DEFAULT CURRENT_TIMESTAMP` | 更新时间 |
 
 **索引**：
 - `CREATE INDEX idx_portfolios_user_id ON portfolios(user_id);`
+
+### 资产类型说明
+
+资产表（assets）的 `type` 字段支持以下类型：
+
+| 类型值 | 说明 | 特点 |
+|--------|------|------|
+| `stock` | 股票 | 需要实时行情支持 |
+| `fund` | 基金 | 包括ETF、开放式基金等 |
+| `bond` | 债券 | 包括国债、企业债等 |
+| `cash` | 现金 | 现金及现金等价物（如余额宝） |
 
 ### 2.3 资产表 (assets)
 
@@ -132,6 +144,73 @@
 - `CREATE INDEX idx_market_data_date ON market_data(date);`
 - `CREATE UNIQUE INDEX idx_market_data_asset_date ON market_data(asset_id, date);`
 
+### 2.8 投资组合财务状态表 (portfolio_finances)
+
+| 字段名 | 数据类型 | 约束 | 描述 |
+|-------|---------|------|------|
+| `id` | `INTEGER` | `PRIMARY KEY AUTOINCREMENT` | 财务记录ID |
+| `portfolio_id` | `INTEGER` | `NOT NULL UNIQUE REFERENCES portfolios(id) ON DELETE CASCADE` | 组合ID（每个组合唯一） |
+| `cash_balance` | `DECIMAL(18,2)` | `NOT NULL DEFAULT 0` | 现金余额 |
+| `total_asset` | `DECIMAL(18,2)` | `NOT NULL DEFAULT 0` | 总资产 |
+| `liability` | `DECIMAL(18,2)` | `NOT NULL DEFAULT 0` | 负债金额 |
+| `net_asset` | `DECIMAL(18,2)` | `NOT NULL DEFAULT 0` | 净资产 |
+| `cost_basis` | `DECIMAL(18,2)` | `NOT NULL DEFAULT 0` | 成本基础 |
+| `created_at` | `TIMESTAMP` | `NOT NULL DEFAULT CURRENT_TIMESTAMP` | 创建时间 |
+| `updated_at` | `TIMESTAMP` | `NOT NULL DEFAULT CURRENT_TIMESTAMP` | 更新时间 |
+
+**说明**：
+- 投资组合财务状态表存储组合的实时财务指标
+- 总资产 = 现金余额 + Σ(持仓数量 × 当前价格)
+- 负债 = |现金余额|（当现金为负时）
+- 净资产 = 总资产 - 负债
+
+**索引**：
+- `CREATE UNIQUE INDEX idx_portfolio_finances_portfolio_id ON portfolio_finances(portfolio_id);`
+
+### 2.9 投资组合财务历史记录表 (portfolio_finance_history)
+
+| 字段名 | 数据类型 | 约束 | 描述 |
+|-------|---------|------|------|
+| `id` | `INTEGER` | `PRIMARY KEY AUTOINCREMENT` | 历史记录ID |
+| `finance_id` | `INTEGER` | `NOT NULL REFERENCES portfolio_finances(id) ON DELETE CASCADE` | 财务记录ID |
+| `record_date` | `TIMESTAMP` | `NOT NULL` | 记录日期 |
+| `cash_balance` | `DECIMAL(18,2)` | `NOT NULL` | 现金余额 |
+| `total_asset` | `DECIMAL(18,2)` | `NOT NULL` | 总资产 |
+| `liability` | `DECIMAL(18,2)` | `NOT NULL` | 负债金额 |
+| `net_asset` | `DECIMAL(18,2)` | `NOT NULL` | 净资产 |
+| `cost_basis` | `DECIMAL(18,2)` | `NOT NULL` | 成本基础 |
+| `created_at` | `TIMESTAMP` | `NOT NULL DEFAULT CURRENT_TIMESTAMP` | 创建时间 |
+
+**索引**：
+- `CREATE INDEX idx_portfolio_finance_history_finance_id ON portfolio_finance_history(finance_id);`
+- `CREATE INDEX idx_portfolio_finance_history_record_date ON portfolio_finance_history(record_date);`
+
+### 2.10 持仓变动记录表 (holding_changes)
+
+| 字段名 | 数据类型 | 约束 | 描述 |
+|-------|---------|------|------|
+| `id` | `INTEGER` | `PRIMARY KEY AUTOINCREMENT` | 变动记录ID |
+| `finance_id` | `INTEGER` | `NOT NULL REFERENCES portfolio_finances(id) ON DELETE CASCADE` | 财务记录ID |
+| `holding_id` | `INTEGER` | `REFERENCES holdings(id)` | 持仓ID |
+| `asset_id` | `INTEGER` | `NOT NULL REFERENCES assets(id)` | 资产ID |
+| `asset_code` | `VARCHAR(20)` | `NOT NULL` | 资产代码 |
+| `asset_name` | `VARCHAR(100)` | `NOT NULL` | 资产名称 |
+| `change_type` | `VARCHAR(20)` | `NOT NULL` | 变动类型（buy/sell/adjust） |
+| `quantity_before` | `DECIMAL(18,4)` | `NOT NULL` | 变动前数量 |
+| `quantity_after` | `DECIMAL(18,4)` | `NOT NULL` | 变动后数量 |
+| `price` | `DECIMAL(18,4)` | `NOT NULL` | 交易价格 |
+| `amount` | `DECIMAL(18,2)` | `NOT NULL` | 交易金额 |
+| `total_asset_before` | `DECIMAL(18,2)` | `NOT NULL` | 变动前总资产 |
+| `total_asset_after` | `DECIMAL(18,2)` | `NOT NULL` | 变动后总资产 |
+| `net_asset_before` | `DECIMAL(18,2)` | `NOT NULL` | 变动前净资产 |
+| `net_asset_after` | `DECIMAL(18,2)` | `NOT NULL` | 变动后净资产 |
+| `transaction_id` | `INTEGER` | `REFERENCES transactions(id)` | 关联交易ID |
+| `created_at` | `TIMESTAMP` | `NOT NULL DEFAULT CURRENT_TIMESTAMP` | 创建时间 |
+
+**索引**：
+- `CREATE INDEX idx_holding_changes_finance_id ON holding_changes(finance_id);`
+- `CREATE INDEX idx_holding_changes_asset_id ON holding_changes(asset_id);`
+
 ## 3. 数据关系图
 
 ```mermaid
@@ -140,6 +219,9 @@ erDiagram
     PORTFOLIO ||--o{ HOLDING : contains
     PORTFOLIO ||--o{ TRANSACTION : has
     PORTFOLIO ||--o{ CASH_FLOW : has
+    PORTFOLIO ||--|| PORTFOLIO_FINANCE : has
+    PORTFOLIO_FINANCE ||--o{ PORTFOLIO_FINANCE_HISTORY : has
+    PORTFOLIO_FINANCE ||--o{ HOLDING_CHANGE : has
     ASSET ||--o{ HOLDING : is_held_in
     ASSET ||--o{ TRANSACTION : is_traded
     ASSET ||--o{ MARKET_DATA : has_history
@@ -162,6 +244,7 @@ erDiagram
         TEXT description
         VARCHAR benchmark
         VARCHAR risk_level
+        BOOLEAN is_default
         TIMESTAMP created_at
         TIMESTAMP updated_at
     }
@@ -170,7 +253,7 @@ erDiagram
         INTEGER id
         VARCHAR code
         VARCHAR name
-        VARCHAR type
+        VARCHAR type          -- stock/fund/bond/cash
         VARCHAR market
         VARCHAR industry
         TIMESTAMP created_at
@@ -223,6 +306,25 @@ erDiagram
         DECIMAL amount
         TIMESTAMP created_at
     }
+```
+
+## 数据关系说明
+
+### 用户-投资组合关系
+- 一个用户可以拥有多个投资组合（1:N）
+- 每个投资组合必须且仅能有一个默认组合（通过 is_default 字段标识）
+
+### 投资组合-资产关系（通过持仓表关联）
+- 一个投资组合可以持有0到n个资产（1:N）
+- 一个资产可以被多个投资组合持有（N:N，通过 holdings 表实现）
+- 资产类型支持：股票(stock)、基金(fund)、债券(bond)、现金(cash)
+
+### 关系遍历示例
+```
+获取用户的所有资产：
+1. 用户 -> 投资组合 (portfolios)
+2. 投资组合 -> 持仓 (holdings)
+3. 持仓 -> 资产 (assets)
 ```
 
 ## 4. 数据模型详细设计

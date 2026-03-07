@@ -1,4 +1,4 @@
-from app.api import auth, portfolio, asset, holding, transaction, cash_flow, performance, market, report
+from app.api import auth, portfolio, asset, holding, transaction, cash_flow, performance, market, report, market_query
 
 __all__ = [
     "auth",
@@ -9,5 +9,6 @@ __all__ = [
     "cash_flow",
     "performance",
     "market",
-    "report"
+    "report",
+    "market_query"
 ]

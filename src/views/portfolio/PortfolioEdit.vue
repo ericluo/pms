@@ -43,6 +43,10 @@
         </el-form-item>
         
         <el-form-item>
+          <el-checkbox v-model="portfolioForm.is_default">设为默认投资组合</el-checkbox>
+        </el-form-item>
+        
+        <el-form-item>
           <el-button type="primary" @click="handleUpdate">更新</el-button>
           <el-button @click="goBack">取消</el-button>
         </el-form-item>
@@ -66,7 +70,8 @@ const portfolioForm = ref({
   name: '',
   description: '',
   benchmark: '',
-  risk_level: ''
+  risk_level: '',
+  is_default: false
 })
 
 const portfolioRules = {
@@ -110,7 +115,8 @@ onMounted(() => {
       name: '我的股票组合',
       description: '这是我的股票投资组合',
       benchmark: '沪深300',
-      risk_level: '中风险'
+      risk_level: '中风险',
+      is_default: false
     }
   }
 })

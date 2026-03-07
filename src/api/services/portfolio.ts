@@ -36,6 +36,7 @@ export async function addHolding(portfolioId: number, holdingData: {
   asset_id: number
   quantity: number
   cost_price: number
+  current_price?: number
 }): Promise<Holding> {
   return http.post<Holding>(`/portfolios/${portfolioId}/holdings`, holdingData)
 }

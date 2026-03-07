@@ -30,7 +30,7 @@ class TransactionList(Resource):
     @api.response(200, '获取成功', [transaction_model])
     @api.response(401, '未授权')
     @api.response(404, '投资组合不存在')
-    def get(self):
+    def get(self, portfolio_id=None):
         """获取投资组合交易列表"""
         db: Session = next(get_db())
         transaction_service = TransactionService(db)
@@ -38,13 +38,12 @@ class TransactionList(Resource):
         
         user_id = get_jwt_identity()
         
-        # 从URL路径中获取portfolio_id
-        import re
-        path = request.path
-        match = re.search(r'/portfolios/(\d+)/transactions', path)
-        if not match:
-            api.abort(400, 'Invalid URL path')
-        portfolio_id = int(match.group(1))
+        # 从路径参数或查询参数获取 portfolio_id
+        if portfolio_id is None:
+            portfolio_id = request.args.get('portfolio_id', type=int)
+        
+        if not portfolio_id:
+            api.abort(400, 'Missing portfolio_id parameter')
         
         # 验证投资组合是否属于该用户
         portfolio = portfolio_service.get_portfolio(portfolio_id, int(user_id))
@@ -72,7 +71,7 @@ class TransactionList(Resource):
     @api.response(201, '创建成功', transaction_model)
     @api.response(401, '未授权')
     @api.response(404, '投资组合不存在')
-    def post(self):
+    def post(self, portfolio_id=None):
         """添加交易"""
         db: Session = next(get_db())
         transaction_service = TransactionService(db)
@@ -80,13 +79,14 @@ class TransactionList(Resource):
         
         user_id = get_jwt_identity()
         
-        # 从URL路径中获取portfolio_id
-        import re
-        path = request.path
-        match = re.search(r'/portfolios/(\d+)/transactions', path)
-        if not match:
-            api.abort(400, 'Invalid URL path')
-        portfolio_id = int(match.group(1))
+        # 如果 portfolio_id 没有通过参数传递，则从 URL 路径中提取
+        if portfolio_id is None:
+            import re
+            path = request.path
+            match = re.search(r'/portfolios/(\d+)/transactions', path)
+            if not match:
+                api.abort(400, 'Invalid URL path')
+            portfolio_id = int(match.group(1))
         
         # 验证投资组合是否属于该用户
         portfolio = portfolio_service.get_portfolio(portfolio_id, int(user_id))
@@ -94,19 +94,25 @@ class TransactionList(Resource):
             api.abort(404, '投资组合不存在')
         
         data = request.json
-        transaction = transaction_service.create_transaction(TransactionCreate(**data), portfolio_id)
+        # 使用 Marshmallow schema 的 load 方法验证和反序列化数据
+        try:
+            transaction_data = TransactionCreate().load(data)
+        except Exception as e:
+            api.abort(400, f'数据验证失败：{str(e)}')
+        
+        transaction = transaction_service.create_transaction(transaction_data, portfolio_id)
         
         return {
             'id': transaction.id,
             'portfolio_id': transaction.portfolio_id,
             'asset_id': transaction.asset_id,
             'transaction_type': transaction.transaction_type,
-            'quantity': transaction.quantity,
-            'price': transaction.price,
-            'amount': transaction.amount,
-            'transaction_date': transaction.transaction_date,
-            'created_at': transaction.created_at,
-            'updated_at': transaction.updated_at
+            'quantity': float(transaction.quantity),
+            'price': float(transaction.price),
+            'amount': float(transaction.amount),
+            'fee': float(transaction.fee) if transaction.fee else 0,
+            'transaction_date': transaction.transaction_date.isoformat() if transaction.transaction_date else None,
+            'created_at': transaction.created_at.isoformat() if transaction.created_at else None
         }, 201
 
 @api.route('/<int:transaction_id>')

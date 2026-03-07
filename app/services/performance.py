@@ -13,9 +13,10 @@ class PerformanceService:
     def calculate_total_return(self, portfolio_id: int) -> float:
         # 计算总回报率
         holdings = self.db.query(Holding).filter(Holding.portfolio_id == portfolio_id).all()
-        total_value = sum(holding.quantity * holding.current_price for holding in holdings)
-        total_cost = sum(holding.quantity * holding.cost_price for holding in holdings)
-        return ((total_value - total_cost) / total_cost) * 100 if total_cost > 0 else 0
+        # 将 Decimal 转换为 float 以避免类型不匹配问题
+        total_value = sum(float(holding.quantity) * float(holding.current_price) for holding in holdings)
+        total_cost = sum(float(holding.quantity) * float(holding.cost_price) for holding in holdings)
+        return ((total_value - total_cost) / total_cost) * 100 if total_cost > 0 else 0.0
     
     def calculate_annualized_return(self, portfolio_id: int) -> float:
         # 计算年化收益率
@@ -62,7 +63,7 @@ class PerformanceService:
         return {
             "total_return": round(total_return, 2),
             "annualized_return": round(annualized_return, 2),
-            "daily_return": round(total_return / 30, 2),  # 简化计算
+            "daily_return": round(annualized_return / 252, 2),  # 按交易日计算日收益
             "weekly_return": round(total_return / 4.3, 2),  # 简化计算
             "monthly_return": round(total_return, 2),
             "yearly_return": round(annualized_return, 2),

@@ -43,6 +43,10 @@
         </el-form-item>
         
         <el-form-item>
+          <el-checkbox v-model="portfolioForm.is_default">设为默认投资组合</el-checkbox>
+        </el-form-item>
+        
+        <el-form-item>
           <el-button type="primary" @click="handleCreate">创建</el-button>
           <el-button @click="goBack">取消</el-button>
         </el-form-item>
@@ -65,7 +69,8 @@ const portfolioForm = ref({
   name: '',
   description: '',
   benchmark: '',
-  risk_level: ''
+  risk_level: '',
+  is_default: false
 })
 
 const portfolioRules = {
@@ -89,8 +94,9 @@ const handleCreate = async () => {
     
     await portfolioStore.createNewPortfolio(portfolioForm.value)
     router.push('/portfolio')
-  } catch (error) {
+  } catch (error: any) {
     console.error('创建投资组合失败:', error)
+    alert('创建投资组合失败: ' + (error?.message || '未知错误'))
   }
 }
 

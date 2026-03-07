@@ -28,7 +28,7 @@ class CashFlowList(Resource):
     @api.response(200, '获取成功', [cash_flow_model])
     @api.response(401, '未授权')
     @api.response(404, '投资组合不存在')
-    def get(self):
+    def get(self, portfolio_id=None):
         """获取投资组合现金流列表"""
         db: Session = next(get_db())
         cash_flow_service = CashFlowService(db)
@@ -36,13 +36,12 @@ class CashFlowList(Resource):
         
         user_id = get_jwt_identity()
         
-        # 从URL路径中获取portfolio_id
-        import re
-        path = request.path
-        match = re.search(r'/portfolios/(\d+)/cash-flows', path)
-        if not match:
-            api.abort(400, 'Invalid URL path')
-        portfolio_id = int(match.group(1))
+        # 从路径参数或查询参数获取 portfolio_id
+        if portfolio_id is None:
+            portfolio_id = request.args.get('portfolio_id', type=int)
+        
+        if not portfolio_id:
+            api.abort(400, 'Missing portfolio_id parameter')
         
         # 验证投资组合是否属于该用户
         portfolio = portfolio_service.get_portfolio(portfolio_id, int(user_id))

@@ -34,6 +34,7 @@
 │   │   ├── cash_flow.py  # 现金流水相关API
 │   │   ├── performance.py # 业绩分析相关API
 │   │   ├── market.py     # 市场数据相关API
+│   │   ├── market_query.py # 市场信息查询API
 │   │   ├── report.py     # 报告相关API
 │   │   └── __init__.py   # API初始化
 │   ├── models/           # 数据模型
@@ -44,6 +45,8 @@
 │   │   ├── transaction.py # 交易记录模型
 │   │   ├── cash_flow.py  # 现金流水模型
 │   │   ├── market_data.py # 市场数据模型
+│   │   ├── portfolio_finance.py # 投资组合财务模型
+│   │   ├── report.py     # 报告模型
 │   │   └── __init__.py   # 模型初始化
 │   ├── schemas/          # 数据验证和序列化
 │   │   ├── user.py       # 用户相关schema
@@ -61,18 +64,15 @@
 │   │   ├── portfolio.py  # 投资组合服务
 │   │   ├── asset.py      # 资产服务
 │   │   ├── holding.py    # 持仓服务
-│   │   ├── transaction.py # 交易记录服务
+│   │   ├── transaction.py # 交易记录服务（含持仓同步逻辑）
 │   │   ├── cash_flow.py  # 现金流水服务
 │   │   ├── performance.py # 业绩分析服务
 │   │   ├── market.py     # 市场数据服务
+│   │   ├── market_query.py # 市场信息查询服务
 │   │   ├── report.py     # 报告服务
 │   │   └── __init__.py   # 服务初始化
 │   ├── utils/            # 工具函数
-│   │   ├── auth.py       # 认证工具
 │   │   ├── database.py   # 数据库工具
-│   │   ├── market.py     # 市场数据工具
-│   │   ├── performance.py # 业绩计算工具
-│   │   ├── report.py     # 报告生成工具
 │   │   └── __init__.py   # 工具初始化
 │   ├── config/           # 配置
 │   │   ├── __init__.py   # 配置初始化
@@ -80,22 +80,11 @@
 │   │   ├── testing.py    # 测试环境配置
 │   │   └── production.py # 生产环境配置
 │   └── __init__.py       # 应用初始化
-├── migrations/           # 数据库迁移
 ├── tests/                # 测试文件
-│   ├── test_auth.py      # 认证测试
-│   ├── test_portfolio.py # 投资组合测试
-│   ├── test_asset.py     # 资产测试
-│   ├── test_holding.py   # 持仓测试
-│   ├── test_transaction.py # 交易记录测试
-│   ├── test_cash_flow.py # 现金流水测试
-│   ├── test_performance.py # 业绩分析测试
-│   ├── test_market.py    # 市场数据测试
-│   ├── test_report.py    # 报告测试
+│   ├── pms.spec.ts      # Playwright测试
 │   └── conftest.py       # 测试配置
 ├── app.py                # 应用入口
 ├── requirements.txt      # 依赖文件
-├── Pipfile               # Pipenv配置文件
-├── Pipfile.lock          # Pipenv锁文件
 ├── .env                  # 环境变量
 ├── .env.example          # 环境变量示例
 ├── .gitignore            # Git忽略文件
@@ -237,7 +226,7 @@ class Transaction(Base):
     id = Column(Integer, primary_key=True, index=True)
     portfolio_id = Column(Integer, ForeignKey('portfolios.id'), nullable=False, index=True)
     asset_id = Column(Integer, ForeignKey('assets.id'), nullable=False, index=True)
-    type = Column(String(10), nullable=False)  # 买入/卖出
+    transaction_type = Column(String(10), nullable=False)  # 买入/卖出
     quantity = Column(Numeric(18, 4), nullable=False)
     price = Column(Numeric(18, 4), nullable=False)
     amount = Column(Numeric(18, 2), nullable=False)
@@ -250,7 +239,7 @@ class Transaction(Base):
     asset = relationship('Asset', back_populates='transactions')
 
     def __repr__(self):
-        return f"<Transaction(id={self.id}, type='{self.type}', asset_id={self.asset_id})>"
+        return f"<Transaction(id={self.id}, transaction_type='{self.transaction_type}', asset_id={self.asset_id})>"
 ```
 
 ### 3.6 现金流水模型 (CashFlow)

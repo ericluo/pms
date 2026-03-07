@@ -29,10 +29,14 @@ class ReportService:
         
         return report if portfolio else None
     
-    def create_report(self, report_create: ReportCreate, user_id: int) -> Report:
+    def create_report(self, report_data: dict, user_id: int) -> Report:
         # 验证投资组合是否属于该用户
+        portfolio_id = report_data.get('portfolio_id')
+        if not portfolio_id:
+            raise ValueError("缺少 portfolio_id 参数")
+        
         portfolio = self.db.query(Portfolio).filter(
-            Portfolio.id == report_create.portfolio_id,
+            Portfolio.id == portfolio_id,
             Portfolio.user_id == user_id
         ).first()
         
@@ -41,9 +45,9 @@ class ReportService:
         
         # 创建报告
         db_report = Report(
-            portfolio_id=report_create.portfolio_id,
-            type=report_create.type,
-            title=report_create.title
+            portfolio_id=portfolio_id,
+            type=report_data.get('type', 'monthly'),
+            title=report_data.get('title', '未命名报告')
         )
         self.db.add(db_report)
         self.db.commit()

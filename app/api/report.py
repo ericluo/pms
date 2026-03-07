@@ -45,7 +45,7 @@ class ReportList(Resource):
                     'portfolio_name': portfolio.name,
                     'type': report.type,
                     'title': report.title,
-                    'generated_at': report.generated_at,
+                    'generated_at': report.generated_at.isoformat() if report.generated_at else None,
                     'url': f'/api/reports/{report.id}/export'
                 })
         
@@ -67,7 +67,7 @@ class ReportList(Resource):
         data = request.json
         
         try:
-            report = report_service.create_report(ReportCreate(**data), int(user_id))
+            report = report_service.create_report(data, int(user_id))
         except ValueError as e:
             api.abort(400, str(e))
         
@@ -79,7 +79,7 @@ class ReportList(Resource):
             'portfolio_name': portfolio.name if portfolio else '',
             'type': report.type,
             'title': report.title,
-            'generated_at': report.generated_at,
+            'generated_at': report.generated_at.isoformat() if report.generated_at else None,
             'url': f'/api/reports/{report.id}/export'
         }, 201
 
@@ -110,7 +110,7 @@ class ReportDetail(Resource):
             'portfolio_name': portfolio.name if portfolio else '',
             'type': report.type,
             'title': report.title,
-            'generated_at': report.generated_at,
+            'generated_at': report.generated_at.isoformat() if report.generated_at else None,
             'url': f'/api/reports/{report.id}/export'
         }
     

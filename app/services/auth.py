@@ -3,6 +3,7 @@ from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
+from flask import current_app
 from app.models.user import User
 from app.schemas.user import UserCreate, UserLogin
 
@@ -25,7 +26,9 @@ class AuthService:
         else:
             expire = datetime.utcnow() + timedelta(minutes=15)
         to_encode.update({"exp": expire})
-        encoded_jwt = jwt.encode(to_encode, "pms-jwt-secret-key-2024", algorithm="HS256")
+        # 从当前 Flask 应用配置中获取 JWT 密钥
+        secret_key = current_app.config['JWT_SECRET_KEY']
+        encoded_jwt = jwt.encode(to_encode, secret_key, algorithm="HS256")
         return encoded_jwt
     
     def get_user_by_email(self, email: str) -> Optional[User]:

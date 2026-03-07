@@ -32,12 +32,14 @@
 - **组合列表**：查看所有投资组合，支持搜索和筛选
 - **组合详情**：查看单个组合的详细信息，包括资产配置、业绩表现等
 - **组合调整**：添加/删除资产，调整持仓比例
+- **默认组合设置**：每个用户可以设置一个默认投资组合
 
 #### 2.1.3 资产持仓模块
-- **资产列表**：查看组合中的所有资产，包括股票、基金、债券等
+- **资产列表**：查看组合中的所有资产，包括股票、基金、债券、现金等
 - **资产详情**：查看单个资产的详细信息，包括价格、涨跌幅、持仓成本等
 - **持仓分析**：分析持仓集中度、行业分布、地域分布等
 - **交易记录**：查看资产的买入/卖出记录
+- **资产类型**：支持股票（stock）、基金（fund）、债券（bond）、现金（cash）四种类型
 
 #### 2.1.4 业绩分析模块
 - **回报分析**：计算绝对回报、相对回报、年化收益等
@@ -61,6 +63,13 @@
 - **自定义报告**：根据用户需求生成自定义报告
 - **报告导出**：支持导出PDF、Excel等格式的报告
 
+#### 2.1.8 投资组合财务管理模块
+- **净资产计算**：根据持仓和市场价值实时计算净资产
+- **总资产计算**：计算总资产（现金余额 + 持仓市值）
+- **负债管理**：当现金为负时自动计算负债金额
+- **净资产历史记录**：记录不同时间点的净资产数据，支持历史查询
+- **持仓变动追踪**：记录每次持仓变动及其对净资产的影响
+
 ### 2.2 功能需求详情
 
 | 功能点 | 描述 | 优先级 |
@@ -72,6 +81,7 @@
 | 市场数据查询 | 获取实时行情、市场指数、行业板块表现 | 高 |
 | 现金管理 | 记录资金流水，查看现金余额 | 中 |
 | 报告生成 | 生成投资组合报告，支持导出 | 中 |
+| 净资产管理 | 计算总资产、负债、净资产，记录历史 | 中 |
 | 风险评估 | 评估投资组合的风险水平，提供风险预警 | 中 |
 | 市场新闻 | 获取最新的市场新闻和资讯 | 低 |
 
@@ -171,28 +181,42 @@ sequenceDiagram
 | updated_at | TIMESTAMP | NOT NULL DEFAULT CURRENT_TIMESTAMP | 更新时间 |
 
 #### 5.1.2 投资组合表 (portfolios)
+
 | 字段名 | 数据类型 | 约束 | 描述 |
 |-------|---------|------|------|
-| id | INTEGER | PRIMARY KEY | 组合ID |
-| user_id | INTEGER | NOT NULL REFERENCES users(id) | 用户ID |
+| id | INTEGER | PRIMARY KEY | 组合 ID |
+| user_id | INTEGER | NOT NULL REFERENCES users(id) | 用户 ID |
 | name | VARCHAR(100) | NOT NULL | 组合名称 |
 | description | TEXT | | 组合描述 |
 | benchmark | VARCHAR(50) | NOT NULL | 业绩基准 |
 | risk_level | VARCHAR(20) | NOT NULL | 风险等级 |
+| is_default | BOOLEAN | NOT NULL DEFAULT FALSE | 是否为默认组合 |
 | created_at | TIMESTAMP | NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
 | updated_at | TIMESTAMP | NOT NULL DEFAULT CURRENT_TIMESTAMP | 更新时间 |
 
 #### 5.1.3 资产表 (assets)
+
 | 字段名 | 数据类型 | 约束 | 描述 |
 |-------|---------|------|------|
-| id | INTEGER | PRIMARY KEY | 资产ID |
+| id | INTEGER | PRIMARY KEY | 资产 ID |
 | code | VARCHAR(20) | UNIQUE NOT NULL | 资产代码 |
 | name | VARCHAR(100) | NOT NULL | 资产名称 |
-| type | VARCHAR(20) | NOT NULL | 资产类型（股票/基金/债券等） |
-| market | VARCHAR(50) | NOT NULL | 市场（A股/港股/美股等） |
+| type | VARCHAR(20) | NOT NULL | 资产类型（stock/fund/bond/cash） |
+| market | VARCHAR(50) | | 市场（A 股/港股/美股等） |
 | industry | VARCHAR(50) | | 所属行业 |
+| interest_rate | DECIMAL(10,4) | | 年化利率（现金资产专用） |
 | created_at | TIMESTAMP | NOT NULL DEFAULT CURRENT_TIMESTAMP | 创建时间 |
 | updated_at | TIMESTAMP | NOT NULL DEFAULT CURRENT_TIMESTAMP | 更新时间 |
+
+**说明**：
+- `type` 字段支持四种类型：
+  - `stock` - 股票
+  - `fund` - 基金
+  - `bond` - 债券
+  - `cash` - 现金（如余额宝、银行存款等）
+- `interest_rate` 字段仅对现金类型资产有效，表示年化收益率
+- 股票、基金、债券类型需要填写 `market` 和 `industry` 字段
+- 现金类型资产不需要 `market` 和 `industry` 字段
 
 #### 5.1.4 持仓表 (holdings)
 | 字段名 | 数据类型 | 约束 | 描述 |
