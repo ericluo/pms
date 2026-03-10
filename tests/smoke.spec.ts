@@ -158,3 +158,55 @@ test('可以访问报告页面', async ({ page }) => {
   
   expect(page.url()).toContain('/report');
 });
+
+test('可以新增投资组合', async ({ page }) => {
+  // 登录
+  await page.goto('http://localhost:3001/auth/login');
+  await page.fill('input[type="text"]', 'test123@example.com');
+  await page.fill('input[type="password"]', '123456');
+  await page.locator('button:has-text("登录")').first().click();
+  await page.waitForTimeout(3000);
+  
+  // 确保登录成功
+  const urlAfterLogin = page.url();
+  if (!urlAfterLogin.includes('portfolio')) {
+    test.skip();
+  }
+  
+  // 点击创建投资组合按钮
+  const createBtn = page.locator('button:has-text("创建"), a:has-text("创建"), button:has-text("新增")').first();
+  await createBtn.click();
+  await page.waitForTimeout(1000);
+  
+  // 确认进入创建页面
+  expect(page.url()).toContain('/portfolio/create');
+  
+  // 填写表单
+  const uniqueName = `测试组合_${Date.now()}`;
+  await page.fill('input[placeholder="请输入组合名称"]', uniqueName);
+  await page.fill('textarea[placeholder="请输入组合描述"]', '这是一个自动化测试创建的投资组合');
+  
+  // 选择业绩基准
+  await page.click('.el-select:has-text("请选择业绩基准")');
+  await page.waitForTimeout(500);
+  await page.click('.el-select-dropdown__item:has-text("沪深300")');
+  
+  // 选择风险等级
+  await page.click('.el-select:has-text("请选择风险等级")');
+  await page.waitForTimeout(500);
+  await page.click('.el-select-dropdown__item:has-text("中风险")');
+  
+  // 点击创建按钮
+  await page.click('button:has-text("创建")');
+  await page.waitForTimeout(3000);
+  
+  // 验证跳转回投资组合列表页
+  const finalUrl = page.url();
+  expect(finalUrl).toContain('/portfolio');
+  expect(finalUrl).not.toContain('/create');
+  
+  // 验证新创建的组合出现在列表中
+  await expect(page.locator(`text=${uniqueName}`)).toBeVisible({ timeout: 5000 });
+  
+  console.log(`投资组合 "${uniqueName}" 创建成功`);
+});

@@ -10,7 +10,7 @@ export default defineConfig({
       use: {
         ...devices['Desktop Edge'],
         channel: 'msedge',
-        baseURL: 'http://localhost:3001',
+        baseURL: 'http://localhost:3000',
       },
     },
   ],
