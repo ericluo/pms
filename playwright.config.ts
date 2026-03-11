@@ -2,14 +2,14 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests',
+  testMatch: '**/*.spec.ts',
   timeout: 60000,
   retries: 1,
   projects: [
     {
-      name: 'Edge',
+      name: 'Chromium',
       use: {
-        ...devices['Desktop Edge'],
-        channel: 'msedge',
+        ...devices['Desktop Chrome'],
         baseURL: 'http://localhost:3000',
       },
     },
