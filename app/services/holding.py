@@ -49,8 +49,8 @@ class HoldingService:
         return True
     
     def calculate_holding_metrics(self, holding: Holding) -> dict:
-        value = holding.quantity * holding.current_price
-        cost = holding.quantity * holding.cost_price
+        value = float(holding.quantity) * float(holding.current_price)
+        cost = float(holding.quantity) * float(holding.cost_price)
         profit = value - cost
         profit_percent = (profit / cost) * 100 if cost > 0 else 0
         return {
@@ -61,7 +61,7 @@ class HoldingService:
         }
     
     def calculate_portfolio_weights(self, holdings: List[Holding]) -> List[dict]:
-        total_value = sum(holding.quantity * holding.current_price for holding in holdings)
+        total_value = sum(float(holding.quantity) * float(holding.current_price) for holding in holdings)
         result = []
         for holding in holdings:
             asset = self.db.query(Asset).filter(Asset.id == holding.asset_id).first()
@@ -73,9 +73,9 @@ class HoldingService:
                 "asset_id": holding.asset_id,
                 "asset_code": asset.code if asset else "",
                 "asset_name": asset.name if asset else "",
-                "quantity": holding.quantity,
-                "cost_price": holding.cost_price,
-                "current_price": holding.current_price,
+                "quantity": float(holding.quantity),
+                "cost_price": float(holding.cost_price),
+                "current_price": float(holding.current_price),
                 "value": metrics["value"],
                 "cost": metrics["cost"],
                 "profit": metrics["profit"],
