@@ -10,7 +10,7 @@ test.describe('PMS 前端功能测试', () => {
     
     const emailInput = page.locator('input[type="text"]').first();
     const passwordInput = page.locator('input[type="password"]').first();
-    const submitBtn = page.locator('button[type="submit"]').first();
+    const submitBtn = page.locator('button:has-text("登录")').first();
     
     await expect(emailInput).toBeVisible({ timeout: 10000 });
     await expect(passwordInput).toBeVisible({ timeout: 10000 });
@@ -25,7 +25,7 @@ test.describe('PMS 前端功能测试', () => {
     
     await page.fill('input[type="text"]', 'test123@example.com');
     await page.fill('input[type="password"]', '123456');
-    await page.click('button[type="submit"]');
+    await page.click('button:has-text("登录")');
     
     await page.waitForURL('**/portfolio', { timeout: 15000 });
     console.log('登录成功，跳转到投资组合页面');
@@ -40,7 +40,7 @@ test.describe('PMS 前端功能测试', () => {
     
     await page.fill('input[type="text"]', 'test123@example.com');
     await page.fill('input[type="password"]', '123456');
-    await page.click('button[type="submit"]');
+    await page.click('button:has-text("登录")');
     await page.waitForURL('**/portfolio', { timeout: 15000 });
     
     const menuItems = ['投资组合', '资产管理', '业绩分析', '市场数据', '现金管理', '报告'];
@@ -57,7 +57,7 @@ test.describe('PMS 前端功能测试', () => {
     
     await page.fill('input[type="text"]', 'test123@example.com');
     await page.fill('input[type="password"]', '123456');
-    await page.click('button[type="submit"]');
+    await page.click('button:has-text("登录")');
     await page.waitForURL('**/portfolio', { timeout: 15000 });
     
     await page.click('text=资产管理');
@@ -74,7 +74,7 @@ test.describe('PMS 前端功能测试', () => {
     
     await page.fill('input[type="text"]', 'test123@example.com');
     await page.fill('input[type="password"]', '123456');
-    await page.click('button[type="submit"]');
+    await page.click('button:has-text("登录")');
     await page.waitForURL('**/portfolio', { timeout: 15000 });
     
     await page.click('text=市场数据');
@@ -91,7 +91,7 @@ test.describe('PMS 前端功能测试', () => {
     
     await page.fill('input[type="text"]', 'test123@example.com');
     await page.fill('input[type="password"]', '123456');
-    await page.click('button[type="submit"]');
+    await page.click('button:has-text("登录")');
     await page.waitForURL('**/portfolio', { timeout: 15000 });
     
     await page.click('text=业绩分析');
@@ -108,7 +108,7 @@ test.describe('PMS 前端功能测试', () => {
     
     await page.fill('input[type="text"]', 'test123@example.com');
     await page.fill('input[type="password"]', '123456');
-    await page.click('button[type="submit"]');
+    await page.click('button:has-text("登录")');
     await page.waitForURL('**/portfolio', { timeout: 15000 });
     
     await page.click('text=现金管理');
@@ -125,7 +125,7 @@ test.describe('PMS 前端功能测试', () => {
     
     await page.fill('input[type="text"]', 'test123@example.com');
     await page.fill('input[type="password"]', '123456');
-    await page.click('button[type="submit"]');
+    await page.click('button:has-text("登录")');
     await page.waitForURL('**/portfolio', { timeout: 15000 });
     
     await page.click('text=报告');

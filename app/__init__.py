@@ -78,17 +78,17 @@ def _register_api(app: Flask) -> None:
         prefix="/api",
         doc="/docs"  # Swagger 文档路径
     )
-    
+
     # 导入并注册各个模块的 API
     from app.api import auth, portfolio, asset, holding, transaction, cash_flow, performance, market, report, market_query
-    
+
     api.add_namespace(auth.api, path="/auth")
     api.add_namespace(portfolio.api, path="/portfolios")
     api.add_namespace(asset.api, path="/assets")
-    api.add_namespace(holding.api, path="/portfolios/<int:portfolio_id>/holdings")
-    api.add_namespace(transaction.api, path="/portfolios/<int:portfolio_id>/transactions")
-    api.add_namespace(cash_flow.api, path="/portfolios/<int:portfolio_id>/cash-flows")
-    api.add_namespace(performance.api, path="/portfolios/<int:portfolio_id>/performance")
+    api.add_namespace(holding.api, path="/portfolios/<int:portfolio_id>/holdings", strict_slashes=False)
+    api.add_namespace(transaction.api, path="/portfolios/<int:portfolio_id>/transactions", strict_slashes=False)
+    api.add_namespace(cash_flow.api, path="/portfolios/<int:portfolio_id>/cash-flows", strict_slashes=False)
+    api.add_namespace(performance.api, path="/portfolios/<int:portfolio_id>/performance", strict_slashes=False)
     api.add_namespace(market.api, path="/market")
     api.add_namespace(report.api, path="/reports")
     api.add_namespace(market_query.api, path="/market_query")
