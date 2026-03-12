@@ -38,7 +38,17 @@ export async function addHolding(portfolioId: number, holdingData: {
   cost_price: number
   current_price?: number
 }): Promise<Holding> {
-  return http.post<Holding>(`/portfolios/${portfolioId}/holdings`, holdingData)
+  console.log('[API] 调用 addHolding, portfolioId:', portfolioId, 'holdingData:', holdingData)
+  const url = `/portfolios/${portfolioId}/holdings`
+  console.log('[API] 请求 URL:', url)
+  try {
+    const result = await http.post<Holding>(url, holdingData)
+    console.log('[API] addHolding 成功，结果:', result)
+    return result
+  } catch (error) {
+    console.error('[API] addHolding 失败:', error)
+    throw error
+  }
 }
 
 // 更新持仓

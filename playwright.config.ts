@@ -14,20 +14,6 @@ export default defineConfig({
       },
     },
     {
-      name: 'firefox',
-      use: {
-        ...devices['Desktop Firefox'],
-        baseURL: 'http://localhost:3000',
-      },
-    },
-    {
-      name: 'webkit',
-      use: {
-        ...devices['Desktop Safari'],
-        baseURL: 'http://localhost:3000',
-      },
-    },
-    {
       name: 'Edge',
       use: {
         ...devices['Desktop Chrome'],

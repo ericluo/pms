@@ -93,3 +93,55 @@ class PortfolioService:
         if not portfolio:
             return []
         return portfolio.holdings
+    
+    def add_holding(self, portfolio_id: int, asset_id: int, quantity: float, cost_price: float, current_price: float, user_id: int) -> Holding:
+        # 验证投资组合是否存在
+        portfolio = self.get_portfolio(portfolio_id, user_id)
+        if not portfolio:
+            raise ValueError('投资组合不存在')
+        
+        # 创建持仓
+        holding = Holding(
+            portfolio_id=portfolio_id,
+            asset_id=asset_id,
+            quantity=quantity,
+            cost_price=cost_price,
+            current_price=current_price
+        )
+        self.db.add(holding)
+        self.db.commit()
+        self.db.refresh(holding)
+        return holding
+    
+    def get_holding(self, holding_id: int, user_id: int) -> Optional[Holding]:
+        # 通过投资组合关联查询，确保用户有权限访问
+        holding = self.db.query(Holding).join(Portfolio).filter(
+            Holding.id == holding_id,
+            Portfolio.user_id == user_id
+        ).first()
+        return holding
+    
+    def update_holding(self, holding_id: int, quantity: Optional[float] = None, cost_price: Optional[float] = None, current_price: Optional[float] = None, user_id: int = None) -> Optional[Holding]:
+        holding = self.get_holding(holding_id, user_id)
+        if not holding:
+            return None
+        
+        if quantity is not None:
+            holding.quantity = quantity
+        if cost_price is not None:
+            holding.cost_price = cost_price
+        if current_price is not None:
+            holding.current_price = current_price
+        
+        self.db.commit()
+        self.db.refresh(holding)
+        return holding
+    
+    def delete_holding(self, holding_id: int, user_id: int) -> bool:
+        holding = self.get_holding(holding_id, user_id)
+        if not holding:
+            return False
+        
+        self.db.delete(holding)
+        self.db.commit()
+        return True

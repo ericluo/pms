@@ -369,18 +369,28 @@ const resetForm = () => {
 
 // 提交持仓（添加或编辑）
 const submitHolding = async () => {
+  console.log('=== 开始提交持仓 ===')
+  console.log('asset_id:', holdingForm.value.asset_id)
+  console.log('quantity:', holdingForm.value.quantity)
+  console.log('cost_price:', holdingForm.value.cost_price)
+  
   if (!holdingForm.value.asset_id) {
+    console.log('验证失败：没有选择资产')
     ElMessage.warning('请选择资产')
     return
   }
   if (holdingForm.value.quantity <= 0) {
+    console.log('验证失败：数量不大于 0')
     ElMessage.warning('持仓数量必须大于 0')
     return
   }
   if (holdingForm.value.cost_price <= 0) {
+    console.log('验证失败：成本价不大于 0')
     ElMessage.warning('成本价必须大于 0')
     return
   }
+  
+  console.log('验证通过，准备提交')
 
   loading.value = true
   try {
@@ -396,16 +406,27 @@ const submitHolding = async () => {
       })
       ElMessage.success('持仓更新成功')
     } else {
-      // 添加模式
-      console.log('添加新持仓')
-      const result = await addHolding(portfolioId, {
-        asset_id: holdingForm.value.asset_id,
-        quantity: holdingForm.value.quantity,
-        cost_price: holdingForm.value.cost_price,
-        current_price: holdingForm.value.current_price
+      // 添加模式 - 直接调用 http.post 测试
+      console.log('添加新持仓 - 直接调用')
+      import('@/utils/http').then(({ default: http }) => {
+        console.log('准备发送 POST 请求...')
+        http.post(`/portfolios/${portfolioId}/holdings`, {
+          asset_id: holdingForm.value.asset_id,
+          quantity: holdingForm.value.quantity,
+          cost_price: holdingForm.value.cost_price,
+          current_price: holdingForm.value.current_price
+        }).then(result => {
+          console.log('POST 请求成功！结果:', result)
+          ElMessage.success('持仓添加成功')
+          dialogVisible.value = false
+          resetForm()
+          fetchPortfolioDetail()
+        }).catch(error => {
+          console.error('POST 请求失败:', error)
+          ElMessage.error('添加失败：' + (error.message || '未知错误'))
+        })
       })
-      console.log('添加持仓结果:', result)
-      ElMessage.success('持仓添加成功')
+      return // 提前返回，不执行后面的代码
     }
     dialogVisible.value = false
     

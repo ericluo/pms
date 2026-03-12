@@ -25,7 +25,7 @@ holding_model = api.model('Holding', {
     'updated_at': fields.DateTime(readonly=True)
 })
 
-@api.route('/', strict_slashes=False)
+@api.route('')
 class HoldingList(Resource):
     @api.doc(security='Bearer')
     @jwt_required()
