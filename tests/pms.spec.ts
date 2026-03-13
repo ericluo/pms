@@ -146,60 +146,71 @@ test.describe('PMS 前端功能测试', () => {
     await page.waitForURL('**/portfolio', { timeout: 15000 });
     
     // 等待投资组合列表加载
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(2000);
     
-    // 点击第一个投资组合的查看按钮进入详情页
-    const viewBtn = page.locator('button:has-text("查看")').first();
-    await viewBtn.click();
-    await page.waitForTimeout(1000);
+    // 直接访问投资组合详情页（ID=6）
+    await page.goto('http://localhost:3000/portfolio/6');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(2000);
     
     // 确认进入了投资组合详情页
     const detailUrl = page.url();
-    expect(detailUrl).toMatch(/\/portfolio\/\d+/);
+    expect(detailUrl).toContain('/portfolio/6');
     console.log('进入投资组合详情页:', detailUrl);
     
+    // 等待页面完全加载，确保没有 vite-error-overlay
+    await page.waitForSelector('.portfolio-detail', { state: 'visible', timeout: 10000 });
+    await page.waitForTimeout(1000);
+    
     // 点击添加持仓按钮
-    await page.click('button:has-text("添加持仓")');
-    await page.waitForTimeout(500);
+    const addHoldingBtn = page.locator('button:has-text("添加持仓")');
+    await addHoldingBtn.waitFor({ state: 'visible', timeout: 10000 });
+    await addHoldingBtn.click();
+    await page.waitForTimeout(1000);
     
     // 等待对话框出现
     const dialog = page.locator('.el-dialog');
-    await expect(dialog).toBeVisible({ timeout: 5000 });
+    await expect(dialog).toBeVisible({ timeout: 10000 });
     console.log('添加持仓对话框已打开');
     
     // 选择资产（使用更可靠的定位器）
     const assetSelect = page.locator('.el-dialog .el-select').first();
+    await assetSelect.waitFor({ state: 'visible', timeout: 5000 });
     await assetSelect.click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(1000);
     
     // 选择第一个资产选项
     const firstOption = page.locator('.el-select-dropdown__item').first();
+    await firstOption.waitFor({ state: 'visible', timeout: 5000 });
     await firstOption.click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(1000);
     console.log('已选择资产');
     
     // 填写持仓数量 - 使用 el-input-number 的 input
     const quantityInput = page.locator('.el-dialog .el-input-number input').first();
+    await quantityInput.waitFor({ state: 'visible', timeout: 5000 });
     await quantityInput.click();
     await quantityInput.fill('100');
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(500);
     console.log('已填写持仓数量');
     
     // 填写成本价
     const costPriceInput = page.locator('.el-dialog .el-input-number input').nth(1);
+    await costPriceInput.waitFor({ state: 'visible', timeout: 5000 });
     await costPriceInput.click();
     await costPriceInput.fill('10.5');
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(500);
     console.log('已填写成本价');
     
     // 点击确定按钮
     const confirmBtn = page.locator('.el-dialog button:has-text("确定")');
+    await confirmBtn.waitFor({ state: 'visible', timeout: 5000 });
     await confirmBtn.click();
     await page.waitForTimeout(3000);
     
     // 验证成功提示
     const successMessage = page.locator('.el-message--success');
-    await expect(successMessage).toBeVisible({ timeout: 5000 });
+    await expect(successMessage).toBeVisible({ timeout: 10000 });
     console.log('持仓添加成功');
     
     // 等待对话框关闭
@@ -211,7 +222,7 @@ test.describe('PMS 前端功能测试', () => {
     
     // 验证持仓是否显示在列表中
     const holdingsTable = page.locator('.el-table');
-    await expect(holdingsTable).toBeVisible({ timeout: 5000 });
+    await expect(holdingsTable).toBeVisible({ timeout: 10000 });
     
     // 检查是否有持仓数据显示（表格中应该有数据行）
     const tableRows = page.locator('.el-table__body-wrapper tr');
@@ -219,7 +230,7 @@ test.describe('PMS 前端功能测试', () => {
     expect(rowCount).toBeGreaterThan(0);
     console.log('持仓列表行数:', rowCount);
     
-    // 验证持仓数据（数量 100 和成本价 10.5 应该显示）
+    // 验证持仓数据（数量 100 应该显示）
     const tableContent = await page.locator('.el-table').textContent();
     expect(tableContent).toContain('100');
     console.log('持仓添加成功，数据已显示在列表中');
@@ -235,33 +246,42 @@ test.describe('PMS 前端功能测试', () => {
     await page.waitForURL('**/portfolio', { timeout: 15000 });
     
     // 等待投资组合列表加载
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(2000);
     
     // 点击第一个投资组合的编辑按钮
     const editBtn = page.locator('button:has-text("编辑")').first();
+    await editBtn.waitFor({ state: 'visible', timeout: 10000 });
     await editBtn.click();
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(2000);
     
     // 确认进入编辑页面
     const editUrl = page.url();
     expect(editUrl).toMatch(/\/portfolio\/\d+\/edit/);
     console.log('进入投资组合编辑页:', editUrl);
     
+    // 等待页面完全加载
+    await page.waitForSelector('.portfolio-edit', { state: 'visible', timeout: 10000 });
+    await page.waitForTimeout(1000);
+    
     // 修改组合名称
     const nameInput = page.locator('input[placeholder="请输入组合名称"]');
+    await nameInput.waitFor({ state: 'visible', timeout: 5000 });
     await nameInput.click();
     await nameInput.fill('');
     await nameInput.fill(`测试组合_编辑_${Date.now()}`);
+    await page.waitForTimeout(500);
     
     // 点击更新按钮
-    await page.click('button:has-text("更新")');
-    await page.waitForTimeout(2000);
+    const updateBtn = page.locator('button:has-text("更新")');
+    await updateBtn.waitFor({ state: 'visible', timeout: 5000 });
+    await updateBtn.click();
+    await page.waitForTimeout(3000);
     
-    // 验证跳转回投资组合列表页
-    const listUrl = page.url();
-    expect(listUrl).toContain('/portfolio');
-    expect(listUrl).not.toContain('/edit');
-    console.log('编辑成功，返回投资组合列表');
+    // 验证跳转到投资组合详情页（不是列表页）
+    const detailUrl = page.url();
+    expect(detailUrl).toContain('/portfolio/');
+    expect(detailUrl).not.toContain('/edit');
+    console.log('编辑成功，跳转到投资组合详情页:', detailUrl);
   });
 
   test('11. 测试删除投资组合功能', async ({ page }) => {

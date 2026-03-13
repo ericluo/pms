@@ -93,8 +93,7 @@ const goToEdit = (id: number) => {
 
 const deletePortfolio = (id: number) => {
   // 删除投资组合逻辑
-  console.log('删除投资组合:', id)
-  // 这里应该有确认对话框的逻辑，但目前只是打印日志
+  // TODO: 添加确认对话框和删除逻辑
 }
 
 onMounted(() => {

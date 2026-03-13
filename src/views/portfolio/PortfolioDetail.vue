@@ -369,80 +369,44 @@ const resetForm = () => {
 
 // 提交持仓（添加或编辑）
 const submitHolding = async () => {
-  console.log('=== 开始提交持仓 ===')
-  console.log('asset_id:', holdingForm.value.asset_id)
-  console.log('quantity:', holdingForm.value.quantity)
-  console.log('cost_price:', holdingForm.value.cost_price)
-  
   if (!holdingForm.value.asset_id) {
-    console.log('验证失败：没有选择资产')
     ElMessage.warning('请选择资产')
     return
   }
   if (holdingForm.value.quantity <= 0) {
-    console.log('验证失败：数量不大于 0')
     ElMessage.warning('持仓数量必须大于 0')
     return
   }
   if (holdingForm.value.cost_price <= 0) {
-    console.log('验证失败：成本价不大于 0')
     ElMessage.warning('成本价必须大于 0')
     return
   }
   
-  console.log('验证通过，准备提交')
-
   loading.value = true
   try {
     const portfolioId = Number(route.params.id)
-    console.log('提交持仓，投资组合 ID:', portfolioId, '表单数据:', holdingForm.value)
     
     if (isEditMode.value) {
-      // 编辑模式
-      console.log('编辑持仓 ID:', holdingForm.value.id)
       await updateHolding(portfolioId, holdingForm.value.id, {
         quantity: holdingForm.value.quantity,
         cost_price: holdingForm.value.cost_price
       })
       ElMessage.success('持仓更新成功')
     } else {
-      // 添加模式 - 直接调用 http.post 测试
-      console.log('添加新持仓 - 直接调用')
-      import('@/utils/http').then(({ default: http }) => {
-        console.log('准备发送 POST 请求...')
-        http.post(`/portfolios/${portfolioId}/holdings`, {
-          asset_id: holdingForm.value.asset_id,
-          quantity: holdingForm.value.quantity,
-          cost_price: holdingForm.value.cost_price,
-          current_price: holdingForm.value.current_price
-        }).then(result => {
-          console.log('POST 请求成功！结果:', result)
-          ElMessage.success('持仓添加成功')
-          dialogVisible.value = false
-          resetForm()
-          fetchPortfolioDetail()
-        }).catch(error => {
-          console.error('POST 请求失败:', error)
-          ElMessage.error('添加失败：' + (error.message || '未知错误'))
-        })
+      await addHolding(portfolioId, {
+        asset_id: holdingForm.value.asset_id,
+        quantity: holdingForm.value.quantity,
+        cost_price: holdingForm.value.cost_price,
+        current_price: holdingForm.value.current_price
       })
-      return // 提前返回，不执行后面的代码
+      ElMessage.success('持仓添加成功')
     }
+    
     dialogVisible.value = false
-    
-    // 重置表单
     resetForm()
-    
-    // 刷新持仓列表 - 使用短暂的延迟确保后端事务已提交
-    console.log('等待刷新...')
-    await new Promise(resolve => setTimeout(resolve, 300))
-    console.log('刷新持仓列表...')
     await fetchPortfolioDetail()
-    console.log('持仓列表已刷新，当前持仓数量:', holdings.value.length)
   } catch (error: any) {
-    console.error('提交持仓失败:', error)
-    console.error('错误详情:', error.response?.data)
-    ElMessage.error(error?.response?.data?.message || error.message || '提交持仓失败')
+    ElMessage.error(error.message || '操作失败')
   } finally {
     loading.value = false
   }
