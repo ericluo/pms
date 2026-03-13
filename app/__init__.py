@@ -92,3 +92,7 @@ def _register_api(app: Flask) -> None:
     api.add_namespace(market.api, path="/market")
     api.add_namespace(report.api, path="/reports")
     api.add_namespace(market_query.api, path="/market_query")
+    
+    # 注册持仓快照 API
+    from app.api.holding import snapshot_api
+    api.add_namespace(snapshot_api, path="/portfolios")

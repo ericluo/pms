@@ -84,11 +84,20 @@ class HoldingChange(Base):
     asset_id = Column(Integer, ForeignKey('assets.id'), nullable=False, index=True)
     asset_code = Column(String(20), nullable=False)
     asset_name = Column(String(100), nullable=False)
-    change_type = Column(String(20), nullable=False)
+    change_type = Column(String(20), nullable=False)  # buy/sell/adjust/cash_dividend/etc.
     quantity_before = Column(Numeric(18, 4), nullable=False)
     quantity_after = Column(Numeric(18, 4), nullable=False)
+    quantity_change = Column(Numeric(18, 4), nullable=True)  # 变动数量（正负值）
     price = Column(Numeric(18, 4), nullable=False)
     amount = Column(Numeric(18, 2), nullable=False)
+    currency = Column(String(10), nullable=True, default='CNY')  # 交易币种
+    exchange_rate = Column(Numeric(10, 6), nullable=True, default=1.0)  # 汇率
+    fair_price = Column(Numeric(18, 4), nullable=True)  # 公允价格
+    valuation_price = Column(Numeric(18, 4), nullable=True)  # 估值净价
+    cost_price = Column(Numeric(18, 4), nullable=True)  # 成本价格（全价）
+    weight = Column(Numeric(10, 6), nullable=True)  # 权重%
+    dividend_date = Column(DateTime, nullable=True)  # 收息日期
+    reason = Column(String(200), nullable=True)  # 变动原因
     total_asset_before = Column(Numeric(18, 2), nullable=False)
     total_asset_after = Column(Numeric(18, 2), nullable=False)
     net_asset_before = Column(Numeric(18, 2), nullable=False)
@@ -100,3 +109,21 @@ class HoldingChange(Base):
 
     def __repr__(self):
         return f"<HoldingChange(id={self.id}, asset_code={self.asset_code}, change_type={self.change_type})>"
+
+
+class HoldingSnapshot(Base):
+    """每日持仓快照表 - 记录每个交易日的完整持仓"""
+    __tablename__ = 'holding_snapshots'
+
+    id = Column(Integer, primary_key=True, index=True)
+    portfolio_id = Column(Integer, ForeignKey('portfolios.id'), nullable=False, index=True)
+    snapshot_date = Column(DateTime, nullable=False, index=True)  # 快照日期
+    holdings_data = Column(String, nullable=False)  # JSON 格式的持仓数据
+    total_market_value = Column(Numeric(18, 2), nullable=False)  # 总市值
+    cash_balance = Column(Numeric(18, 2), nullable=True, default=0)  # 现金余额
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+    portfolio = relationship('Portfolio', back_populates='holding_snapshots')
+
+    def __repr__(self):
+        return f"<HoldingSnapshot(portfolio_id={self.portfolio_id}, date={self.snapshot_date})>"

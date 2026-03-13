@@ -22,6 +22,7 @@ class Portfolio(Base):
     transactions = relationship('Transaction', back_populates='portfolio', cascade='all, delete-orphan')
     cash_flows = relationship('CashFlow', back_populates='portfolio', cascade='all, delete-orphan')
     finance = relationship('PortfolioFinance', back_populates='portfolio', uselist=False, cascade='all, delete-orphan')
+    holding_snapshots = relationship('HoldingSnapshot', back_populates='portfolio', cascade='all, delete-orphan')
 
     def __repr__(self):
         return f"<Portfolio(id={self.id}, name='{self.name}', user_id={self.user_id}, is_default={self.is_default})>"
