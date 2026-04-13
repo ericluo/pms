@@ -37,9 +37,9 @@ class PortfolioList(Resource):
         return [{
             'id': p.id,
             'user_id': p.user_id,
-            'name': p.name.encode('utf-8').decode('iso-8859-1') if p.name else p.name,
+            'name': p.name,
             'description': p.description,
-            'bench_mark': p.benchmark,
+            'benchmark': p.benchmark,
             'risk_level': p.risk_level,
             'created_at': p.created_at.isoformat() if p.created_at else None,
             'updated_at': p.updated_at.isoformat() if p.updated_at else None
@@ -111,7 +111,7 @@ class PortfolioDetail(Resource):
                 'quantity': float(h.quantity) if h.quantity else 0,
                 'cost_price': float(h.cost_price) if h.cost_price else 0,
                 'current_price': float(h.current_price) if h.current_price else 0,
-                'value': float(h.quantity) + float(h.current_price) if h.quantity and h.current_price else 0,
+                'value': float(h.quantity) * float(h.current_price) if h.quantity and h.current_price else 0,
                 'profit': (float(h.current_price) - float(h.cost_price)) * float(h.quantity) if h.quantity and h.cost_price and h.current_price else 0,
                 'profit_rate': ((float(h.current_price) - float(h.cost_price)) / float(h.cost_price) * 100) if h.cost_price and h.current_price else 0,
                 'asset': {

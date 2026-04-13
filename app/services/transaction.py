@@ -47,6 +47,7 @@ class TransactionService:
                     self.db.delete(holding)
     
     def create_transaction(self, transaction_data: dict, portfolio_id: int) -> Transaction:
+        trans_type = 'buy' if transaction_data['transaction_type'] == '买入' else 'sell'
         db_transaction = Transaction(
             portfolio_id=portfolio_id,
             asset_id=transaction_data['asset_id'],
@@ -61,9 +62,9 @@ class TransactionService:
         self._update_holding_after_transaction(
             portfolio_id,
             transaction_data['asset_id'],
-            transaction_data['transaction_type'],
-            transaction_data['price'],
-            transaction_data['quantity']
+            trans_type,
+            transaction_data['quantity'],
+            transaction_data['price']
         )
         self.db.commit()
         self.db.refresh(db_transaction)
