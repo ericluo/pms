@@ -24,7 +24,7 @@ class TransactionService:
             Holding.asset_id == asset_id
         ).first()
         
-        if trans_type == 'buy':
+        if trans_type == '买入':
             if holding:
                 total_cost = holding.cost_price * holding.quantity + price * quantity
                 new_quantity = holding.quantity + quantity
@@ -40,21 +40,27 @@ class TransactionService:
                 )
                 self.db.add(holding)
                 
-        elif trans_type == 'sell':
+        elif trans_type == '卖出':
             if holding:
                 holding.quantity -= quantity
                 if holding.quantity <= 0:
                     self.db.delete(holding)
     
     def create_transaction(self, transaction_data: dict, portfolio_id: int) -> Transaction:
+        # 转换为Decimal类型
+        quantity = Decimal(str(transaction_data['quantity']))
+        price = Decimal(str(transaction_data['price']))
+        amount = Decimal(str(transaction_data.get('amount') or quantity * price))
+        fee = Decimal(str(transaction_data.get('fee') or 0))
+
         db_transaction = Transaction(
             portfolio_id=portfolio_id,
             asset_id=transaction_data['asset_id'],
-            type=transaction_data['transaction_type'],
-            quantity=transaction_data['quantity'],
-            price=transaction_data['price'],
-            amount=transaction_data.get('amount') or transaction_data['quantity'] * transaction_data['price'],
-            fee=transaction_data.get('fee') or 0,
+            transaction_type=transaction_data['transaction_type'],
+            quantity=quantity,
+            price=price,
+            amount=amount,
+            fee=fee,
             transaction_date=transaction_data['transaction_date']
         )
         self.db.add(db_transaction)
@@ -62,8 +68,8 @@ class TransactionService:
             portfolio_id,
             transaction_data['asset_id'],
             transaction_data['transaction_type'],
-            transaction_data['price'],
-            transaction_data['quantity']
+            quantity,
+            price
         )
         self.db.commit()
         self.db.refresh(db_transaction)
@@ -81,9 +87,9 @@ class TransactionService:
         
         self.db.delete(db_transaction)
         
-        if trans_type == 'buy':
+        if trans_type == '买入':
             self._revert_buy_holding(portfolio_id, asset_id, quantity, price)
-        elif trans_type == 'sell':
+        elif trans_type == '卖出':
             self._revert_sell_holding(portfolio_id, asset_id, quantity, price)
         
         self.db.commit()
