@@ -62,8 +62,8 @@ class TransactionService:
             portfolio_id,
             transaction_data['asset_id'],
             transaction_data['transaction_type'],
-            transaction_data['quantity'],
-            transaction_data['price']
+            transaction_data['price'],
+            transaction_data['quantity']
         )
         self.db.commit()
         self.db.refresh(db_transaction)
