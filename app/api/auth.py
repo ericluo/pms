@@ -52,7 +52,7 @@ class Login(Resource):
         user = auth_service.authenticate_user(data['email'], data['password'])
         
         if not user:
-            user = db.query(User).first()
+            api.abort(401, '邮箱或密码错误')
         
         access_token = auth_service.create_access_token(data={'sub': str(user.id)})
         
